@@ -5,7 +5,7 @@ from PyQt5.QtCore import Qt
 from string import ascii_uppercase
 import socket
 import multiprocessing
-
+import json
 class ShipPlacementWindow(QWidget):
     def __init__(self, player, game_setup_window):
         super().__init__()
@@ -117,9 +117,28 @@ class ShipPlacementWindow(QWidget):
                 button.setStyleSheet("background-color: blue")
 
     def confirm_placement(self):
-        ship_placement = self.get_ship_placement()
-        self.game_setup_window.save_ship_placement(self.player, ship_placement)
-        self.close()
+        # Пример адреса и порта сервера
+        server_address = ('192.168.0.167', 5555)
+
+        # Создание сокета
+        client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+        try:
+            # Подключение к серверу
+            client_socket.connect(server_address)
+
+            # Отправка данных о расстановке кораблей на сервер
+            placement_data = json.dumps(self.get_ship_placement())
+            print(self.get_ship_placement())
+            client_socket.sendall(placement_data.encode())
+
+            # Закрытие сокета после отправки данных
+            client_socket.close()
+
+            # Закрытие окна расстановки кораблей
+            self.close()
+        except Exception as e:
+            print("Ошибка при отправке данных на сервер:", e)
 
     def get_ship_placement(self):
         ship_placement = []
@@ -305,4 +324,5 @@ class BattleshipClient:
 
 if __name__ == "__main__":
     client = BattleshipClient("192.168.0.167", 5555)  # IP-адрес и порт сервера
+
     client.connect()

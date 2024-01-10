@@ -3,27 +3,29 @@ import threading
 
 class BattleshipServer:
     def __init__(self):
+
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server_socket.bind(('192.168.0.167', 5555))
         self.server_socket.listen(2)  # Принимаем до двух клиентов
 
         self.players = []
         self.player_ship_placements = {}
-        self.start_ship_placement_event = threading.Event()
 
+        self.start_ship_placement_event = threading.Event()
     def handle_client(self, client_socket, player_id):
         # Логика для обработки сообщений от клиента
         # ...
 
         while True:
+            print(1)
+            self.start_ship_placement_event.wait()  # Ждем события начала расстановки кораблей
             data = client_socket.recv(1024)  # Принимаем данные от клиента
             if not data:
                 break
-            ship_placement = self.process_ship_placement_data(data)  # Обработка данных о расстановке кораблей
-            self.player_ship_placements[player_id] = ship_placement
-            # Дополнительная логика для обработки ходов игроков и отправки информации о состоянии игры
-            # Отправка информации о состоянии игры обоим игрокам
-            client_socket.sendall(self.get_game_state().encode())
+            else:
+                print(data)
+            # ship_placement = self.process_ship_placement_data(data)  # Обработка данных о расстановке кораблей
+            # self.player_ship_placements[player_id] = ship_placement
 
         client_socket.close()
 
@@ -39,7 +41,6 @@ class BattleshipServer:
             self.players.append((client_socket, addr))
 
             if len(self.players) == 2:
-                print('зашли')
                 self.start_ship_placement_event.set()  # Устанавливаем сигнал о начале расстановки кораблей
                 for player in self.players:
                     print('отправили', (player[0],))
