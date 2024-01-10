@@ -13,17 +13,15 @@ class BattleshipServer:
 
         self.start_ship_placement_event = threading.Event()
     def handle_client(self, client_socket, player_id):
-        # Логика для обработки сообщений от клиента
-        # ...
-
         while True:
-            print(1)
             self.start_ship_placement_event.wait()  # Ждем события начала расстановки кораблей
             data = client_socket.recv(1024)  # Принимаем данные от клиента
             if not data:
-                break
+                # Обработка случая, когда данные не были получены
+                print("Ошибка: Данные не были получены")
             else:
-                print(data)
+                # Обработка полученных данных
+                print("Получены данные от клиента:", data)
             # ship_placement = self.process_ship_placement_data(data)  # Обработка данных о расстановке кораблей
             # self.player_ship_placements[player_id] = ship_placement
 
@@ -33,6 +31,20 @@ class BattleshipServer:
         self.start_ship_placement_event.wait()  # Ждем сигнала о начале расстановки кораблей
         client_socket.sendall("START_SHIP_PLACEMENT".encode())  # Отправка сообщения о начале расстановки кораблей
 
+    def handle_players_after_start(self):
+        for player_id, (client_socket, addr) in enumerate(self.players, 1):
+            print(f"Обработка игрока {player_id}: {addr}")
+            data = client_socket.recv(1024)  # Принимаем данные от клиента
+            if not data:
+                # Обработка случая, когда данные не были получены
+                print("Ошибка: Данные не были получены")
+            else:
+                # Обработка полученных данных
+                print("Получены данные от клиента:", data)
+            # ship_placement = self.process_ship_placement_data(data)  # Обработка данных о расстановке кораблей
+            # self.player_ship_placements[player_id] = ship_placement
+
+            client_socket.close()
     def start(self):
         print("Сервер запущен и ожидает подключений...")
         while len(self.players) < 2:
@@ -42,9 +54,7 @@ class BattleshipServer:
 
             if len(self.players) == 2:
                 self.start_ship_placement_event.set()  # Устанавливаем сигнал о начале расстановки кораблей
-                for player in self.players:
-                    print('отправили', (player[0],))
-                    threading.Thread(target=self.send_start_ship_placement, args=(player[0],)).start()
+                self.handle_players_after_start()  # Обработка взаимодействия с игроками после начала расстановки кораблей
 
             client_handler = threading.Thread(target=self.handle_client, args=(client_socket, len(self.players)))
             client_handler.start()

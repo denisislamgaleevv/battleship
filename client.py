@@ -4,7 +4,7 @@ from random import randint
 from PyQt5.QtCore import Qt
 from string import ascii_uppercase
 import socket
-import multiprocessing
+# import multiprocessing
 import json
 class ShipPlacementWindow(QWidget):
     def __init__(self, player, game_setup_window):
@@ -129,11 +129,16 @@ class ShipPlacementWindow(QWidget):
 
             # Отправка данных о расстановке кораблей на сервер
             placement_data = json.dumps(self.get_ship_placement())
-            print(self.get_ship_placement())
+            print(placement_data)
+            print(placement_data.encode())
             client_socket.sendall(placement_data.encode())
+            # response = client_socket.recv(1024)  # Ожидание ответа от сервера
+            # print("Получен ответ от сервера:", response)
+            # client_socket.close()  # Закрытие соединения
+
 
             # Закрытие сокета после отправки данных
-            client_socket.close()
+            # client_socket.close()
 
             # Закрытие окна расстановки кораблей
             self.close()
